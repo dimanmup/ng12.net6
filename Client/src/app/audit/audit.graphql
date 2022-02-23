@@ -1,0 +1,21 @@
+query AuditEvents(
+  $skip: Int!
+  $take: Int!
+  $oldestUtcDate: DateTime!
+) {
+  auditEvents(
+    skip: $skip
+    take: $take
+    order: { id: DESC }
+    where: { utcDateTime: { lt: $oldestUtcDate } }
+  ) {
+    items {
+      id
+      localDateTime
+      object
+      source
+      httpStatusCode
+    }
+    totalCount
+  }
+}

@@ -1,0 +1,13 @@
+<div id="uploader">
+  <input type="file" #file style="display: none;" (change)="onFileSelected($event)" #fileUpload>
+  <div class="file-upload">
+    <span id="file-name">{{fileName || "Файл не выбран."}}</span>
+    <button mat-button (click)="file.click()" *ngIf="!progress"><mat-icon>search</mat-icon></button>
+    <button mat-button (click)="cancel()" *ngIf="progress" class="cancel"><mat-icon>close</mat-icon></button>
+  </div>
+  <div id="progress" *ngIf="progress">
+    <mat-progress-bar class="progress-bar" mode="determinate" [value]="progress"></mat-progress-bar>
+    <div style="text-align: center;">{{progress}} %</div>
+  </div>
+  <div id="message" *ngIf="message" [ngClass]="messageStatus">{{message}}</div>
+</div>

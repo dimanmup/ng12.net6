@@ -1,0 +1,32 @@
+#uploader {
+    margin: 200px auto 0;
+    padding: 30px;
+    width: fit-content;
+    background-color: aliceblue;
+}
+#file-name {
+    display: inline-block;
+    width: fit-content;
+    min-width: 270px;
+}
+#message {
+    font-weight: 400;
+}
+#message.error {
+    color: firebrick;
+}
+#message.success {
+    color: green;
+}
+.progress-bar {
+    margin: 15px 0;
+}
+button.cancel {
+    color: firebrick;
+}
+::ng-deep .mat-progress-bar-fill::after {
+    background-color: darkblue;
+}
+::ng-deep .mat-progress-bar-buffer {
+    background-color: lightgray;
+}

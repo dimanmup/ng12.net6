@@ -1,0 +1,67 @@
+/* #region header */
+header {
+    background-color: #0a2973;
+    font-family: Tahoma;
+}
+header #logo {
+    display: block;
+    margin-top: 13px;
+}
+header .info {
+    max-width: calc(100% - 70px);
+}
+header .info>.line {
+    margin: 10px 0;
+    line-height: 11pt;
+}
+header .info .app {
+    color: #009fdf;
+}
+header .info .app.name {
+    max-width: calc(100% - 100px);
+}
+header .info .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+header .info .page {
+    color: white;
+}
+/* #endregion */
+
+/* #region material tabs */
+.mat-tab-link {
+    padding: 0;
+    opacity: 1;
+    color: #68a;
+    height: 30px;
+    font-weight: normal;
+    border-right: 1px solid #ceced2;
+}
+.mat-tab-link:hover {
+    background-color: white;
+    text-decoration: none !important;
+}
+.mat-tab-link.active {
+    background-color: white;
+}
+/* #endregion */
+
+/* #region nav */
+nav {
+    background-color: #f3f3f4;
+}
+nav .mat-icon {
+    margin-right: 5px;
+}
+/* #endregion */
+
+/* #region tooltip */
+::ng-deep .mat-tooltip {
+    white-space: pre;
+    font-size: 8pt;
+    font-family: Consolas;
+}
+/* #endregion */

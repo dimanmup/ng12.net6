@@ -1,0 +1,12 @@
+query AuditEventDescriptionById(
+  $id: Int!
+) {
+  auditEvents(
+    where: { id: { eq: $id } }
+  ) {
+    items {
+      description
+      localDateTime
+    }
+  }
+}

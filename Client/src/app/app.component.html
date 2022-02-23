@@ -1,0 +1,36 @@
+<header>
+    <div class="container-fluid no-gutters">
+        <div class="row flex-nowrap no-gutters">
+            <div class="col-auto">
+                <a id="logo" href="/">
+                    <img src="../assets/logo.svg" alt="logo" height="30px">
+                </a>
+            </div>
+            <div class="col info">
+                <div class="container-fluid line">
+                    <div class="row flex-nowrap">
+                        <div class="col app name">Angular12.Net6 Domain App</div>
+                        <div class="col-auto ml-auto app dt">{{datetimeLocalString}}</div>
+                    </div>
+                </div>
+                <div class="container-fluid line">
+                    <div class="row flex-nowrap">
+                        <div class="col page name"><span class="text-uppercase">{{pageName}}</span></div>
+                        <div class="col-auto ml-auto page user">{{displayName}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<nav mat-tab-nav-bar>
+    <a mat-tab-link routerLink='/audit' routerLinkActive='active'>
+        <mat-icon>remove_red_eye</mat-icon>
+        <span>События</span>
+    </a>
+    <a mat-tab-link routerLink='/upload' routerLinkActive='active'>
+        <mat-icon>info</mat-icon>
+        <span>Справка</span>
+    </a>
+</nav>
+<router-outlet></router-outlet>

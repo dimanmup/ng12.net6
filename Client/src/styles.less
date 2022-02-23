@@ -1,0 +1,54 @@
+html, body { 
+    height: 100%; 
+}
+body { 
+    margin: 0; 
+    font-family: 'Segoe UI';
+    font-size: 11pt;
+}
+
+/* #region  nackbar */
+.snackbar.error {
+    background-color: firebrick;
+}
+.snackbar button {
+    color: black;
+}
+/* #endregion */
+
+/* region table */
+table {
+    width: 100%;
+}
+table .number {
+    color: darkblue;
+}
+#table-container {
+    margin: 0 auto;
+    position: relative;
+}
+#table-container .mat-paginator-container {
+    justify-content: flex-start;
+}
+#table-container th {
+    font-size: unset;
+}
+#table-container[loading='true'] {
+    opacity: 0.4;
+}
+#table-container[loading='true']::after{ 
+    content: '';
+    position: absolute;
+    display: block;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background-image: url(assets/Spin-1s-200px.svg);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-color: rgba(181, 255, 255, 0.274);
+    text-align: center;
+    opacity: 1;
+}
+/* #endregion */

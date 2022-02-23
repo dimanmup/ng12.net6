@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>Скачать журнал аудита</h2>
+<hr>
+<div mat-dialog-content>
+  <mat-form-field appearance="fill">
+    <mat-label>Период</mat-label>
+    <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+      <input matStartDate formControlName="start" placeholder="Начальная">
+      <input matEndDate formControlName="end" placeholder="Конечная">
+    </mat-date-range-input>
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+    <mat-error *ngIf="range.controls.start.hasError('matStartDateInvalid')">Неверная начальная дата</mat-error>
+    <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Неверная конечная дата</mat-error>
+  </mat-form-field>
+</div>
+<div *ngIf="validate()">
+  <div mat-dialog-actions>
+    <button mat-stroked-button (click)="download()">
+      <mat-icon>save_alt</mat-icon>
+      <span>CSV</span>
+    </button>
+  </div>
+</div>
