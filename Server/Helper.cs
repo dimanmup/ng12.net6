@@ -212,19 +212,6 @@ public static class Helper
         User user = new User();
         user.IdentityName = identity.Name;
 
-        #region Encoding
-        Encoding encoding;
-        if (ldap == null)
-        {
-            encoding = Encoding.ASCII;
-        }
-        else
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            encoding = Encoding.GetEncoding(ldap.CodePage);
-        }
-        #endregion
-
         try
         {
             using (LdapConnection ldapConnection = ldap == null
@@ -262,11 +249,36 @@ public static class Helper
                 searchRequest.SizeLimit = 1;
                 searchResponse = (SearchResponse)ldapConnection.SendRequest(searchRequest, timeout);
 
+                #region Encoding
+                Encoding encoding;
+                if (ldap == null)
+                {
+                    encoding = Encoding.ASCII;
+                }
+                else
+                {
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    encoding = Encoding.GetEncoding(ldap.CodePage);
+                }
+                #endregion
+
                 user.DisplayName = encoding.GetString((byte[])(searchResponse.Entries[0].Attributes["CN"][0]));
 
                 var groupsAttributes = searchResponse.Entries[0].Attributes["memberOf"];
 
-                if (groupsAttributes != null && groupsAttributes.Count > 0)
+                if (groupsAttributes == null || groupsAttributes.Count == 0)
+                {
+                    return user;
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    foreach (byte[] entry in groupsAttributes)
+                    {
+                        user.Groups.Add(encoding.GetString(entry));
+                    }
+                }
+                else
                 {
                     foreach (byte[] entry in groupsAttributes)
                     {
@@ -286,7 +298,7 @@ public static class Helper
         {
             Log.Logger.Error(ex, ex.Message);
 
-            user.LdapErrorResponseMessage = ex.Message + $" (the values are interpreted using the {encoding.CodePage} code page)";
+            user.LdapErrorResponseMessage = ex.Message;
 
             return user;
         }
