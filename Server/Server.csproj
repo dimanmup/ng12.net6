@@ -30,4 +30,11 @@
     <ProjectReference Include="..\DAL\DAL.csproj" />
   </ItemGroup>
 
+  <!-- В путях не должно быть пробелов. -->
+  <Target Name="Builder" AfterTargets="BeforeBuild">
+		<Error Condition="Exists('$(ProjectDir)..\Builder\bin\Debug\net6.0\Builder.exe') == 'false'" 
+      Text="Проект Builder в конфигурации Debug не собран!" />
+		<Exec Command="$(ProjectDir)..\Builder\bin\Debug\net6.0\Builder.exe"></Exec>
+	</Target>
+
 </Project>
