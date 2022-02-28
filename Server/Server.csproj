@@ -19,6 +19,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
     <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
@@ -32,8 +33,7 @@
 
   <!-- В путях не должно быть пробелов. -->
   <Target Name="Builder" AfterTargets="BeforeBuild">
-		<Error Condition="Exists('$(ProjectDir)..\Builder\bin\Debug\net6.0\Builder.exe') == 'false'" 
-      Text="Проект Builder в конфигурации Debug не собран!" />
+		<Error Condition="Exists('$(ProjectDir)..\Builder\bin\Debug\net6.0\Builder.exe') == 'false'" Text="Проект Builder в конфигурации Debug не собран!" />
 		<Exec Command="$(ProjectDir)..\Builder\bin\Debug\net6.0\Builder.exe"></Exec>
 	</Target>
 

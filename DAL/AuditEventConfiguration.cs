@@ -11,6 +11,11 @@ public class AuditEventConfiguration : IEntityTypeConfiguration<AuditEvent>
 
         builder.Property(b => b.Id)
             .HasColumnName("ID");
+        
+        if (fluentSettings.IdTypeName is not null)
+        {
+            builder.Property(b => b.Id).HasColumnType(fluentSettings.IdTypeName);
+        }
 
         builder.Property(b => b.UtcDateTime)
             .HasColumnName("UTC_DT")
@@ -45,5 +50,12 @@ public class AuditEventConfiguration : IEntityTypeConfiguration<AuditEvent>
             .HasColumnName("SOURCE_DEVICE")
             .IsRequired(false)
             .HasMaxLength(100);
+    }
+
+    private readonly FluentSettings fluentSettings;
+
+    public AuditEventConfiguration(FluentSettings fluentSettings)
+    {
+        this.fluentSettings = fluentSettings;
     }
 }

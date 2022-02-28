@@ -64,6 +64,7 @@ builder.Services.AddDataProtection();
 #region Database
 
 // Commands:
+// dotnet ef migrations add AuditEvents -o Migrations/Oracle  -- --provider PostgreSQL
 // dotnet ef migrations add AuditEvents -o Migrations/Oracle  -- --provider Oracle
 // dotnet ef migrations add AuditEvents -o Migrations/Sqlite  -- --provider SQLite
 // dotnet ef migrations add AuditEvents -o Migrations/Sqlite
@@ -71,7 +72,14 @@ builder.Services.AddDataProtection();
 string dbProviderName = settings.Args.FirstOrDefault(kv => kv.Key == "db").Value ?? builder.Configuration.GetValue("provider", "SQLite");
 string connectionString = builder.Configuration.GetConnectionString(dbProviderName);
 
-DbContextOrigin dbContextOrigin = new DbContextOrigin(dbProviderName, connectionString);
+FluentSettings fluentSettings = new FluentSettings();
+if (dbProviderName == "PostgreSQL")
+{
+    fluentSettings.IdTypeName = "serial";
+}
+builder.Services.AddSingleton(fluentSettings);
+
+DbContextOrigin dbContextOrigin = new DbContextOrigin(dbProviderName, connectionString, fluentSettings);
 builder.Services.AddSingleton(dbContextOrigin);
 
 Action<dynamic> dbProviderOptionsSetter = dbProviderOptions =>
@@ -84,6 +92,10 @@ switch (dbProviderName)
 {
     case "Oracle":
         builder.Services.AddDbContext<AppDbContext>(options => options.UseOracle(connectionString, dbProviderOptionsSetter));
+        break;
+
+    case "PostgreSQL":
+        builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString, dbProviderOptionsSetter));
         break;
 
     case "sqlite":

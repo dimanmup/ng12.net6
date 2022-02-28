@@ -5,13 +5,15 @@ namespace Server.Authorization;
 
 public class DbContextOrigin
 {
-    public readonly string connectionString = "";
-    public readonly string provider;
+    public readonly string ConnectionString = "";
+    public readonly string Provider;
+    public readonly FluentSettings FluentSettings;
 
-    public DbContextOrigin(string povider = "sqlite", string connectionString = "Data Source=test.db; foreign keys=true;")
+    public DbContextOrigin(string povider = "SQLite", string connectionString = "Data Source=test.db; foreign keys=true;", FluentSettings? fluentSettings = null)
     {
-        this.provider = povider;
-        this.connectionString = connectionString;
+        Provider = povider;
+        ConnectionString = connectionString;
+        FluentSettings = fluentSettings ?? new FluentSettings();
     }
 
     public AppDbContext GetDbContext()
@@ -19,18 +21,22 @@ public class DbContextOrigin
         DbContextOptionsBuilder<AppDbContext> optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         DbContextOptions<AppDbContext> options;
         
-        switch (provider)
+        switch (Provider)
         {
-            case "oracle":
-                options = optionsBuilder.UseOracle(connectionString).Options;
+            case "Oracle":
+                options = optionsBuilder.UseOracle(ConnectionString).Options;
                 break;
 
-            case "sqlite":
+            case "PostgreSQL":
+                options = optionsBuilder.UseNpgsql(ConnectionString).Options;
+                break;
+
+            case "SQLite":
             default:
-                options = optionsBuilder.UseSqlite(connectionString).Options;
+                options = optionsBuilder.UseSqlite(ConnectionString).Options;
                 break;
         }
 
-        return new AppDbContext(options);
+        return new AppDbContext(options, FluentSettings);
     }
 }
