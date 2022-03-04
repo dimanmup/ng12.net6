@@ -120,6 +120,14 @@ public class FileController : Controller
                     Directory.CreateDirectory(loading.UploadingFolder);
                 }
 
+                #region Name validation
+                if (!loading.NameAllowed(contentDisposition.FileName.Value))
+                {
+                    message = "This name is not allowed.";
+                    return Results.BadRequest(message);
+                }
+                #endregion
+
                 string path = System.IO.Path.Combine(loading.UploadingFolder, contentDisposition.FileName.Value);
 
                 #region Path
