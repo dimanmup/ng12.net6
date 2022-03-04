@@ -7,6 +7,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Server.Authorization;
 using Server.Injections;
+using Server.Models;
 using System.Globalization;
 using System.Net;
 using System.Web;
@@ -148,12 +149,12 @@ public class FileController : Controller
                     await section.Body.CopyToAsync(targetStream);
                 }
 
-                message = $"The file was saved as '{path}'.";
+                FileDescription fd = new FileDescription(path);
                 
                 using (AppDbContext dbContext = dbContextOrigin.GetDbContext())
                 {
                     await dbContext.WriteAuditEventAsync(request.HttpContext,
-                        detail: message,
+                        detail: fd.GetJson(),
                         parseRequestForm: false);
                 }
 
