@@ -10,6 +10,7 @@ import { Router, NavigationStart, Event as NavigationEvent } from '@angular/rout
 const pageNames: { [id: string]: string; } = {
   '/': 'главная',
   '/audit': 'события',
+  '/auditOfUploadings': 'события: загрузка файлов',
   '/upload': 'справка'
 };
 

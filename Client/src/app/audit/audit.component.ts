@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { AuditEventsGQL, AuditEventsQuery, Exact } from 'src/generated/graphql';
 import { ErrorComponent } from '../error/error.component';
 import { Title } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 
 // Dialogs:
 import { AuditEventDialogComponent } from '../audit-event-dialog/audit-event-dialog.component';
@@ -32,6 +33,7 @@ export interface IAuditEvent {
 })
 export class AuditComponent implements OnInit {
   loading: boolean = true;
+  uploadingsOnly: boolean | undefined = false;
 
   displayedColumns: string[] = ['id', 'code', 'localDateTimeString', 'object', 'source', 'detail'];
   dataSource: MatTableDataSource<IAuditEvent> = new MatTableDataSource<IAuditEvent>();
@@ -53,14 +55,19 @@ export class AuditComponent implements OnInit {
     private snackBar: MatSnackBar, 
     private datePipe: DatePipe, 
     public dialog: MatDialog,
-    private titleService: Title) { 
+    private titleService: Title,
+    private route: ActivatedRoute) { 
       this.titleService.setTitle('Аудит');
     }
 
   ngOnInit(): void {
 
+    this.route.data.subscribe(data => {
+      this.uploadingsOnly = data.uploadingsOnly;
+    }).unsubscribe();
+
     this.auditEventsQueryRef = this.auditEventsGQL
-      .watch({skip: 0, take: this.pageSizes[0], oldestUtcDate: this.oldestDateIsoString}, 
+      .watch({skip: 0, take: this.pageSizes[0], oldestUtcDate: this.oldestDateIsoString, uploadingsOnly: this.uploadingsOnly }, 
         {fetchPolicy: 'network-only'}
       );
 
@@ -68,9 +75,12 @@ export class AuditComponent implements OnInit {
       .subscribe(result /* typed */ => {
 
         this.loading = false;
-        if(!result.data.auditEvents?.totalCount || !result.data.auditEvents?.items || !result.data.auditEvents?.items[0]) return;
 
-        this.dataSource.data = result.data.auditEvents.items.map(row => <IAuditEvent>{ 
+        const resultVariant = this.uploadingsOnly ? result.data.auditUploadingsEvents : result.data.auditEvents;
+        
+        if(!resultVariant?.totalCount || !resultVariant?.items || !resultVariant?.items[0]) return;
+
+        this.dataSource.data = resultVariant.items.map(row => <IAuditEvent>{ 
           id: row.id, 
           localDateTimeString: this.datePipe.transform(new Date(row.localDateTime), 'yyyy.MM.dd HH:mm:ss'),
           object: row.object,
@@ -78,9 +88,8 @@ export class AuditComponent implements OnInit {
           code: row.httpStatusCode
         });
 
-        this.length = result.data.auditEvents.totalCount;
+        this.length = resultVariant.totalCount;
         // this.paginator.length = result.data.auditEvents.totalCount; // not working (*)
-
       }, (error: ApolloError) => {
         this.loading = false;
         const config : MatSnackBarConfig = {

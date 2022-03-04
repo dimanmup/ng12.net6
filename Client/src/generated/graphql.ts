@@ -111,10 +111,19 @@ export type ComparableInt32OperationFilterInput = {
 export type Query = {
   __typename?: 'Query';
   auditEvents?: Maybe<AuditEventCollectionSegment>;
+  auditUploadingsEvents?: Maybe<AuditEventCollectionSegment>;
 };
 
 
 export type QueryAuditEventsArgs = {
+  order?: InputMaybe<Array<AuditEventSortInput>>;
+  skip?: InputMaybe<Scalars['Int']>;
+  take?: InputMaybe<Scalars['Int']>;
+  where?: InputMaybe<AuditEventFilterInput>;
+};
+
+
+export type QueryAuditUploadingsEventsArgs = {
   order?: InputMaybe<Array<AuditEventSortInput>>;
   skip?: InputMaybe<Scalars['Int']>;
   take?: InputMaybe<Scalars['Int']>;
@@ -152,10 +161,11 @@ export type AuditEventsQueryVariables = Exact<{
   skip: Scalars['Int'];
   take: Scalars['Int'];
   oldestUtcDate: Scalars['DateTime'];
+  uploadingsOnly?: Scalars['Boolean'];
 }>;
 
 
-export type AuditEventsQuery = { __typename?: 'Query', auditEvents?: Maybe<{ __typename?: 'AuditEventCollectionSegment', totalCount: number, items?: Maybe<Array<{ __typename?: 'AuditEvent', id: number, localDateTime: any, object: string, source?: Maybe<string>, httpStatusCode: number }>> }> };
+export type AuditEventsQuery = { __typename?: 'Query', auditEvents?: Maybe<{ __typename?: 'AuditEventCollectionSegment', totalCount: number, items?: Maybe<Array<{ __typename?: 'AuditEvent', id: number, localDateTime: any, object: string, source?: Maybe<string>, httpStatusCode: number }>> }>, auditUploadingsEvents?: Maybe<{ __typename?: 'AuditEventCollectionSegment', totalCount: number, items?: Maybe<Array<{ __typename?: 'AuditEvent', id: number, localDateTime: any, object: string, source?: Maybe<string>, httpStatusCode: number }>> }> };
 
 export const AuditEventDescriptionByIdDocument = gql`
     query AuditEventDescriptionById($id: Int!) {
@@ -179,13 +189,28 @@ export const AuditEventDescriptionByIdDocument = gql`
     }
   }
 export const AuditEventsDocument = gql`
-    query AuditEvents($skip: Int!, $take: Int!, $oldestUtcDate: DateTime!) {
+    query AuditEvents($skip: Int!, $take: Int!, $oldestUtcDate: DateTime!, $uploadingsOnly: Boolean! = false) {
   auditEvents(
     skip: $skip
     take: $take
     order: {id: DESC}
     where: {utcDateTime: {lt: $oldestUtcDate}}
-  ) {
+  ) @skip(if: $uploadingsOnly) {
+    items {
+      id
+      localDateTime
+      object
+      source
+      httpStatusCode
+    }
+    totalCount
+  }
+  auditUploadingsEvents(
+    skip: $skip
+    take: $take
+    order: {id: DESC}
+    where: {utcDateTime: {lt: $oldestUtcDate}}
+  ) @include(if: $uploadingsOnly) {
     items {
       id
       localDateTime

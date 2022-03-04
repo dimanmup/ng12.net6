@@ -31,6 +31,7 @@ type CollectionSegmentInfo {
 
 type Query {
   auditEvents(skip: Int take: Int where: AuditEventFilterInput order: [AuditEventSortInput!]): AuditEventCollectionSegment @authorize(apply: BEFORE_RESOLVER)
+  auditUploadingsEvents(skip: Int take: Int where: AuditEventFilterInput order: [AuditEventSortInput!]): AuditEventCollectionSegment @authorize(apply: BEFORE_RESOLVER)
 }
 
 input AuditEventFilterInput {

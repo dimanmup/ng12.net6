@@ -16,6 +16,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
@@ -64,6 +65,7 @@ export class LowerCaseUrlSerializer extends DefaultUrlSerializer {
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
+    MatMenuModule,
     MatPaginatorModule,
     MatProgressBarModule,
     MatSnackBarModule,

@@ -2,13 +2,29 @@ query AuditEvents(
   $skip: Int!
   $take: Int!
   $oldestUtcDate: DateTime!
+  $uploadingsOnly: Boolean! = false
 ) {
-  auditEvents(
+  auditEvents (
     skip: $skip
     take: $take
     order: { id: DESC }
     where: { utcDateTime: { lt: $oldestUtcDate } }
-  ) {
+  ) @skip(if: $uploadingsOnly) {
+    items {
+      id
+      localDateTime
+      object
+      source
+      httpStatusCode
+    }
+    totalCount
+  }
+  auditUploadingsEvents (
+    skip: $skip
+    take: $take
+    order: { id: DESC }
+    where: { utcDateTime: { lt: $oldestUtcDate } }
+  ) @include(if: $uploadingsOnly) {
     items {
       id
       localDateTime

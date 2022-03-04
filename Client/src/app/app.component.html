@@ -24,9 +24,15 @@
     </div>
 </header>
 <nav mat-tab-nav-bar>
-    <a mat-tab-link routerLink='/audit' routerLinkActive='active'>
-        <mat-icon>remove_red_eye</mat-icon>
-        <span>События</span>
+    <a mat-tab-link routerLinkActive='active'>
+        <div [matMenuTriggerFor]="menu" class="tab-menu">
+            <mat-icon>remove_red_eye</mat-icon>
+            <span>События</span>
+        </div>
+        <mat-menu #menu="matMenu">
+            <div mat-menu-item [routerLink]="'/audit'">Все</div>
+            <div mat-menu-item [routerLink]="'/auditOfUploadings'">Загрузка файлов</div>
+        </mat-menu>
     </a>
     <a mat-tab-link routerLink='/upload' routerLinkActive='active'>
         <mat-icon>cloud_upload</mat-icon>
@@ -34,4 +40,4 @@
     </a>
 </nav>
 <router-outlet></router-outlet>
-<div id='version'>v0.41.0.1<br>2022.03.04 23:36:19</div>
+<div id='version'>v0.41.2.0<br>2022.03.05 02:30:07</div>
