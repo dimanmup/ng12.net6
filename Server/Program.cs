@@ -117,9 +117,7 @@ Ldap? ldap = builder.Configuration.GetSection("Ldap").Get<Ldap>();
 if (ldap != null)
 {
     builder.Services.AddSingleton(ldap);
-    
     logger.LogInformation($"LDAP user credentials are set. The code page {ldap.CodePage} is used.");
-    
 }
 #endregion
 

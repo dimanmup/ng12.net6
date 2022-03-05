@@ -314,7 +314,7 @@ public static class Helper
         int separatorIndex;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            separatorIndex = identity.Name.IndexOf('\\');
+            separatorIndex = identity.Name.IndexOf('\\') + 1;
             return identity.Name.Substring(separatorIndex);
         } 
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

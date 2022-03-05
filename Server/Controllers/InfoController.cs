@@ -21,7 +21,7 @@ public class InfoController : Controller
     private readonly Ldap? ldap;
     private readonly IDataProtector protector;
 
-    public InfoController(AppDbContext context, Settings settings, Descriptor descriptor, IDataProtectionProvider provider, Ldap? ldap) 
+    public InfoController(AppDbContext context, Settings settings, Descriptor descriptor, IDataProtectionProvider provider, Ldap? ldap = null) 
     {
         this.context = context;
         this.settings = settings;
@@ -50,6 +50,7 @@ public class InfoController : Controller
         identityInfo.Add("is authenticated", User.Identity?.IsAuthenticated);
         identityInfo.Add("authentication type", User.Identity?.AuthenticationType);
         identityInfo.Add("identity name", User.Identity?.Name);
+        identityInfo.Add("SAM account name", User.Identity?.GetSAMAccountName());
 
         Dictionary<string, object?> databaseInfo = new Dictionary<string, object?>();
         databaseInfo.Add("can connect", context.Database.CanConnect());
