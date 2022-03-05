@@ -12,6 +12,7 @@ public class User
     public string? Base { get; set; }
     public List<string> Groups { get; set; } = new List<string>();
     public string? LdapErrorResponseMessage { get; set; }
+    public int CodePage { get; set; } = System.Text.Encoding.ASCII.CodePage;
 
     public bool HasAnyGroup(IEnumerable<string> groups)
     {

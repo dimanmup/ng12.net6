@@ -231,8 +231,8 @@ public static class Helper
                 
                 SearchRequest searchRequest;
                 SearchResponse searchResponse;
-                
-                // 1. Определение base из КД, определившего групповую политику для запускающего пользователя.
+
+                #region base из КД, определившего групповую политику для запускающего пользователя
                 searchRequest = new SearchRequest(null, 
                     "(objectClass=*)", 
                     SearchScope.Base, 
@@ -240,56 +240,86 @@ public static class Helper
                 searchRequest.SizeLimit = 1;
                 searchResponse = (SearchResponse)ldapConnection.SendRequest(searchRequest, timeout);
                 user.Base = searchResponse.Entries[0].Attributes["defaultNamingContext"][0].ToString(); // Всегда на латинице.
+                #endregion
 
-                // 2. Определение ФИО и групп.
+                #region ФИО и группы
                 searchRequest = new SearchRequest(user.Base, 
                     $"(&(objectCategory=person)(objectClass=user)(sAMAccountName={sAMAccountName}))", 
                     SearchScope.Subtree,
                     new string[] { "CN", "memberOf" });              
                 searchRequest.SizeLimit = 1;
                 searchResponse = (SearchResponse)ldapConnection.SendRequest(searchRequest, timeout);
-
-                #region Encoding
-                Encoding encoding;
-                if (ldap == null)
-                {
-                    encoding = Encoding.ASCII;
-                }
-                else
-                {
-                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                    encoding = Encoding.GetEncoding(ldap.CodePage);
-                }
                 #endregion
 
-                user.DisplayName = encoding.GetString((byte[])(searchResponse.Entries[0].Attributes["CN"][0]));
+                #region Encoding
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                Encoding encoding = (ldap != null ? Encoding.GetEncoding(ldap.CodePage) : Encoding.GetEncoding(1251))
+                    ?? Encoding.GetEncoding(1251) 
+                    ?? Encoding.ASCII;
+                
+                user.CodePage = encoding.CodePage;
+                #endregion
 
-                var groupsAttributes = searchResponse.Entries[0].Attributes["memberOf"];
+                #region Локализация ФИО
+                var displayNameSource = searchResponse.Entries[0].Attributes["CN"];
+                user.DisplayName = displayNameSource.GetValues(typeof(string))[0] as string;
 
-                if (groupsAttributes == null || groupsAttributes.Count == 0)
+                if (user.DisplayName is not null && user.DisplayName.Contains('\uFFFD'))
+                {
+                    if (displayNameSource[0] is byte[])
+                    {
+                        user.DisplayName = encoding.GetString((byte[])displayNameSource[0]);
+                    }
+                    else
+                    {
+                        user.DisplayName = displayNameSource[0].ToString();
+                    }
+                }
+
+                var groupsSource = searchResponse.Entries[0].Attributes["memberOf"];
+
+                if (groupsSource == null || groupsSource.Count == 0)
                 {
                     return user;
                 }
+                #endregion
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                #region Локализация групп
+                List<string> groupsAutoNames = groupsSource.GetValues(typeof(string)).Cast<string>().ToList();
+
+                for (var i = 0; i < groupsAutoNames.Count; i++)
                 {
-                    foreach (byte[] entry in groupsAttributes)
+                    if (groupsAutoNames[i].Contains('\uFFFD'))
                     {
-                        user.Groups.Add(encoding.GetString(entry));
+                        user.Groups.Add(groupsSource[i] is byte[] 
+                            ? encoding.GetString((byte[])groupsSource[i]) 
+                            : (groupsSource[i].ToString() + ""));
+                    }
+                    else
+                    {
+                        user.Groups.Add(groupsAutoNames[i]);
                     }
                 }
-                else
-                {
-                    foreach (byte[] entry in groupsAttributes)
-                    {
-                        string entryString = encoding.GetString(entry);
-                        int fromIndex = 3 + entryString.IndexOf("CN=", StringComparison.OrdinalIgnoreCase);
-                        int toIndex = -3 + entryString.IndexOf(',', StringComparison.OrdinalIgnoreCase);
-                        string group = entryString.Substring(fromIndex, toIndex);
 
-                        user.Groups.Add(group);
-                    }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    user.Groups = user.Groups.Select(g => 
+                    {
+                        int fromIndex = g.IndexOf("CN=", StringComparison.OrdinalIgnoreCase);
+                        int length = g.IndexOf(',', StringComparison.OrdinalIgnoreCase);
+
+                        if (fromIndex > -1 && fromIndex < length)
+                        {
+                            return g.Substring(fromIndex + 3, length - 3);
+                        }
+                        else
+                        {
+                            return g;
+                        }
+                    })
+                    .ToList();
                 }
+                #endregion
 
                 return user;
             }

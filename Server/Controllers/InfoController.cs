@@ -92,6 +92,7 @@ public class InfoController : Controller
         domainInfo.Add("display name", user.DisplayName);
         domainInfo.Add("LDAP base", user.Base);
         domainInfo.Add("LDAP response error", user.LdapErrorResponseMessage);
+        domainInfo.Add("code page", user.CodePage);
 
         for (int i = 0; i < user.Groups.Count; i++)
         {
