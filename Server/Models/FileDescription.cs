@@ -22,10 +22,12 @@ public class FileDescription
         {
             Error = "File not found.";
         }
-
-        CreationTimeUtc = fi.CreationTimeUtc;
-        LastWriteTimeUtc = fi.CreationTimeUtc;
-        Size = fi.Length;
+        else
+        {
+            CreationTimeUtc = fi.CreationTimeUtc;
+            LastWriteTimeUtc = fi.CreationTimeUtc;
+            Size = fi.Length;
+        }
     }
 
     public string GetJson()

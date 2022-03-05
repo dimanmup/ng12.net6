@@ -31,7 +31,7 @@ public class InfoController : Controller
     }
 
     /// <summary>
-    /// Дает справку.<br>
+    /// Дает справку.<br/>
     /// Если в авторизации используется кука, отправляет ее вместе с ответом на этот запрос.
     /// </summary>
     /// <param name="group">Проверяемая доменная группа.</param>
@@ -92,7 +92,7 @@ public class InfoController : Controller
         domainInfo.Add("display name", user.DisplayName);
         domainInfo.Add("LDAP base", user.Base);
         domainInfo.Add("LDAP response error", user.LdapErrorResponseMessage);
-        domainInfo.Add("code page", user.CodePage);
+        domainInfo.Add("alt code page", user.AltCodePage);
 
         for (int i = 0; i < user.Groups.Count; i++)
         {
@@ -143,19 +143,19 @@ public class InfoController : Controller
     }
 
     /// <summary>
-    /// Для проверки инъекции шифрователя.
+    /// Проверяет работу шифрователя.
     /// </summary>
     [Route("api/protect")]
     public string Protect(string value) => protector.Protect(value);
     
     /// <summary>
-    /// Для проверки перехвата ошибки при делении на 0.
+    /// Проверяет перехват ошибки при делении на 0.
     /// </summary>
     [Route("api/division-by")]
     public int DivisionBy(int divider = 1) => 1 / divider;
 
     /// <summary>
-    /// Для проверки перехвата ошибки со всеми потомками любого типа.
+    /// Проверяет перехват ошибки со всеми потомками любого типа.
     /// </summary>
     [Route("api/error")]
     public IActionResult Error()

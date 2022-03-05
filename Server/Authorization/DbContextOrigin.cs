@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using DAL;
+using Microsoft.EntityFrameworkCore;
 
 namespace Server.Authorization;
 

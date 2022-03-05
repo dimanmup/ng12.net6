@@ -38,13 +38,16 @@ using ILoggerFactory loggerFactory =
 ILogger<Program> logger = loggerFactory.CreateLogger<Program>();
 #endregion
 
-#region builder
+// Builder:
+
+#region Builder
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
     // Чтобы запускалось и как приложение, и как служба.
     ContentRootPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : default
 });
+#endregion
 
 #region Settings
 Settings settings = new Settings(Environment.GetCommandLineArgs());
@@ -57,26 +60,31 @@ foreach (var a in settings.Args)
 }
 #endregion
 
-builder.Services.AddHttpContextAccessor(); // Инъекция HTTP-контекста в GraphQL-запрос.
+builder.Services.AddHttpContextAccessor(); // Инъекция HTTP-контекста.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddDataProtection();
+builder.Services.AddDataProtection(); // Для шифрования cookie.
+// ! Данные могут быть расшифрованы только на сервере, на котором они были зашифрованы.
 
 #region Database
 
-// Commands:
-// dotnet ef migrations add AuditEvents -o Migrations/Oracle  -- --provider PostgreSQL
-// dotnet ef migrations add AuditEvents -o Migrations/Oracle  -- --provider Oracle
-// dotnet ef migrations add AuditEvents -o Migrations/Sqlite  -- --provider SQLite
-// dotnet ef migrations add AuditEvents -o Migrations/Sqlite
+// Создание миграций
+// dotnet ef migrations add Name -o Migrations/PostgreSQL -- --provider PostgreSQL
+// dotnet ef migrations add Name -o Migrations/Oracle -- --provider Oracle
+// dotnet ef migrations add Name -o Migrations/Sqlite -- --provider SQLite
+// dotnet ef migrations add Name -o Migrations/Sqlite
 
 string dbProviderName = settings.Args.FirstOrDefault(kv => kv.Key == "db").Value ?? builder.Configuration.GetValue("provider", "SQLite");
 string connectionString = builder.Configuration.GetConnectionString(dbProviderName);
 
 FluentSettings fluentSettings = new FluentSettings();
+
+// ! Текущая версия EF Core для PostgreSQL создает PK без автоинкремента.
+
 if (dbProviderName == "PostgreSQL")
 {
-    fluentSettings.IdTypeName = "serial";
+    fluentSettings.IdTypeName = "serial"; // Для автоинкремента PK в PostgreSQL.
 }
+
 builder.Services.AddSingleton(fluentSettings);
 
 DbContextOrigin dbContextOrigin = new DbContextOrigin(dbProviderName, connectionString, fluentSettings);
@@ -98,14 +106,14 @@ switch (dbProviderName)
         builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString, dbProviderOptionsSetter));
         break;
 
-    case "sqlite":
+    case "SQLite":
     default:
         builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString, dbProviderOptionsSetter));
         break;
     
-    // TODO:
-    //options.LogTo(Log.Logger.Information).EnableSensitiveDataLogging();
-    //options.LogTo(Console.WriteLine).EnableSensitiveDataLogging();
+    // TODO: options.LogTo(Log.Logger.Information).EnableSensitiveDataLogging();
+    // TODO: options.LogTo(Console.WriteLine).EnableSensitiveDataLogging();
+    // TODO: Использовать enum с провайдерами.
 }
 
 logger.LogInformation($"DB provider: {dbProviderName}");
@@ -117,7 +125,7 @@ Ldap? ldap = builder.Configuration.GetSection("Ldap").Get<Ldap>();
 if (ldap != null)
 {
     builder.Services.AddSingleton(ldap);
-    logger.LogInformation($"LDAP user credentials are set. The code page {ldap.CodePage} is used.");
+    logger.LogInformation($"LDAP user credentials are set. Alt code page: {ldap.AltCodePage}.");
 }
 #endregion
 
@@ -138,8 +146,7 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNe
         options.EnableLdap(settings =>
         {
             settings.Domain = ldap.Domain;
-            settings.LdapConnection = ldap.GetLdapConnection();
-            
+            settings.LdapConnection = ldap.GetLdapConnection();         
             settings.EnableLdapClaimResolution = true;
         });
     }
@@ -161,7 +168,7 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder
-                //.AllowAnyOrigin()
+                //.AllowAnyOrigin() не работает.
                 .WithOrigins("http://localhost:4200") // URI клиентской части, запущенной отдельно (на localhost с другим портом).
                 .AllowAnyHeader()
                 .AllowAnyMethod()
@@ -173,22 +180,18 @@ builder.Services.AddCors(options =>
 
 #region Files
 Loading loading = builder.Configuration.GetSection("Loading").Get<Server.Injections.Loading>();
-
 builder.Services.AddSingleton(loading);
+
 builder.Services.Configure<KestrelServerOptions>(options =>
 {
-    // При загрузке данных больше options.Limits.MaxRequestBodySize
-    // периодически создается ошибка 0: Response без заголовков.
+    // ! При загрузке данных больше options.Limits.MaxRequestBodySize периодически создается ошибка 0: Response без заголовков.
     // ? Ошибка превышения options.Limits.MaxRequestBodySize опережает остальные.
     //options.Limits.MaxRequestBodySize = loading.MaxRequestBodySize;
     
     options.Limits.MaxRequestBodySize = null;
     options.Limits.MinRequestBodyDataRate = new MinDataRate(50, TimeSpan.FromSeconds(30));
-
-    //options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(130);
-    //options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
-    //options.AllowSynchronousIO = true;
 });
+
 // При загрузке на сервер форма игнорируется, читается только stream из тела multipart/form-data.
 // builder.Services.Configure<FormOptions>(options =>
 // {
@@ -210,19 +213,20 @@ builder.Services.AddGraphQLServer()
 builder.Host
     .UseSerilog() // Системное логирование в файлы.
     .UseWindowsService(); // Исполнимость в качестве службы.
-#endregion
 
 #region app
 var app = builder.Build();
+
 app.UseRouting();
 app.UseHttpsRedirection();
 app.UseExceptionHandler("/api/error-handler");
 app.UseCors(corsPolicyName); // Для доступности другому приложению, т.е. запущенному на localhost с другим портом.
 
-// Negotiate
+// NegotiateDefaults.AuthenticationScheme
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Доступ файлов wwwroot только для аутентифицированных пользователей
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = responseContext =>
@@ -246,18 +250,20 @@ app.MapFallbackToFile("index.html"); // Для GET-запросов через �
 
 // Uploading very large files.
 app.MapPost("api/upload", Server.Controllers.FileController.Upload).RequireAuthorization();
-
-logger.LogInformation("Application launched!");
-logger.LogInformation("Banana Cake Pop: https://localhost:5011/graphql");
-logger.LogInformation("Download GraphQL scheme: https://localhost:5011/graphql?sdl");
-logger.LogInformation("Check getting info: https://localhost:5011/api/info");
-logger.LogInformation("Check error 500: https://localhost:5011/api/division-by?divider=0");
-logger.LogInformation("Check protector: https://localhost:5011/api/protect?value=hello");
-logger.LogInformation("Check downloading: https://localhost:5011/api/download/audit?utcStart=2022.02.18&utcEnd=2022.02.21");
-logger.LogInformation("Angular SPA: http://localhost:4200");
-
-app.Run();
 #endregion
 
+logger.LogInformation("Application launched!");
+Console.WriteLine();
+Console.WriteLine("Banana Cake Pop: https://localhost:5011/graphql");
+Console.WriteLine("Download GraphQL scheme: https://localhost:5011/graphql?sdl");
+Console.WriteLine("Check getting info: https://localhost:5011/api/info");
+Console.WriteLine("Check error 500: https://localhost:5011/api/division-by?divider=0");
+Console.WriteLine("Check protector: https://localhost:5011/api/protect?value=hello");
+Console.WriteLine("Check downloading: https://localhost:5011/api/download/audit?utcStart=2022.02.18&utcEnd=2022.02.21");
+Console.WriteLine("Angular SPA: http://localhost:4200");
+
+app.Run();
+
 // dotnet run su=desktop-cpkmc9c\diman cookie-for-dev
-// dotnet run cookie-for-dev
+// dotnet run  -- --provider PostgreSQL
+// dotnet run  -- --provider Oracle

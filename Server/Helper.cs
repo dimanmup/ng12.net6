@@ -17,6 +17,7 @@ using System.Text;
 /// </summary>
 public static class Helper
 {
+    public const string AuthorizationCookiName = "auth";
     public const string AuthorizationCookieProtectionPurpose = "auth-cookie";
     public const string JsonDateFormat = "yyyy.MM.dd HH.mm.ss.fff";
     private const string formatOfForbidden = "One of the following roles is required: {0}.";
@@ -32,6 +33,16 @@ public static class Helper
             request.QueryString.Value);
     }
 
+    /// <summary>
+    /// Проверяет наличие доступа к ресурсу по его path.
+    /// </summary>
+    /// <param name="descriptor">Описание ролевой модели appsettings.json:Authorization, по которой определяется доступ.</param>
+    /// <param name="path">Path HTTP- или GraphQL-запроса.</param>
+    /// <param name="httpContext">Источник identity name. Если используются cookie, то берется из них.</param>
+    /// <param name="settings">Источник пользователей с неограниченным доступом.</param>
+    /// <param name="protector">Расшифровывает cookie авторизации.</param>
+    /// <param name="pathOfGraphql">Указывает какой path используется.</param>
+    /// <returns>true, если ресурс доступен, иначе false.</returns>
     public static KeyValuePair<HttpStatusCode, string?> IsAvailable(this Descriptor descriptor, 
         string path,
         HttpContext httpContext,
@@ -43,14 +54,14 @@ public static class Helper
         string userName;
 
         #region Authentication with cookie
-        User? userFromCookie = httpContext.Request.GetUserFromCookie(protector);
+        User? userFromCookie = descriptor.UseCookie ? httpContext.Request.GetUserFromCookie(protector) : null;
 
-        if (descriptor.UseCookie && userFromCookie != null)
+        if (userFromCookie is not null)
         {
             userName = userFromCookie.IdentityName;
             hasDomainGroup = userFromCookie.HasGroup;
         }
-        else if (httpContext.User.Identity?.Name != null)
+        else if (httpContext.User.Identity?.Name is not null)
         {
             userName = httpContext.User.Identity.Name;
             hasDomainGroup = httpContext.User.IsInRole;
@@ -168,7 +179,7 @@ public static class Helper
 
     public static User? GetUserFromCookie(this HttpRequest request, IDataProtector protector)
     {
-        if (request.Cookies.TryGetValue("auth", out string? userJsonSecret)
+        if (request.Cookies.TryGetValue(AuthorizationCookiName, out string? userJsonSecret)
             && !string.IsNullOrEmpty(userJsonSecret))
         {
             User? user = null;
@@ -196,6 +207,7 @@ public static class Helper
         else
         {
             Log.Logger.Error("The request does not contain authorization cookie.");
+
             return null;
         }
     }
@@ -214,9 +226,10 @@ public static class Helper
 
         try
         {
-            using (LdapConnection ldapConnection = ldap == null
-                ? new LdapConnection(new LdapDirectoryIdentifier(string.Empty))
-                : ldap.GetLdapConnection())
+            using (LdapConnection ldapConnection = 
+                ldap == null
+                    ? new LdapConnection(new LdapDirectoryIdentifier(string.Empty))
+                    : ldap.GetLdapConnection())
             {
                 
                 TimeSpan timeout = TimeSpan.FromSeconds(ldapTimeout);
@@ -253,11 +266,11 @@ public static class Helper
 
                 #region Encoding
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                Encoding encoding = (ldap != null ? Encoding.GetEncoding(ldap.CodePage) : Encoding.GetEncoding(1251))
+                Encoding encoding = (ldap != null ? Encoding.GetEncoding(ldap.AltCodePage) : Encoding.GetEncoding(1251))
                     ?? Encoding.GetEncoding(1251) 
                     ?? Encoding.ASCII;
                 
-                user.CodePage = encoding.CodePage;
+                user.AltCodePage = encoding.CodePage;
                 #endregion
 
                 #region Локализация ФИО
@@ -278,7 +291,7 @@ public static class Helper
 
                 var groupsSource = searchResponse.Entries[0].Attributes["memberOf"];
 
-                if (groupsSource == null || groupsSource.Count == 0)
+                if (groupsSource is null || groupsSource.Count == 0)
                 {
                     return user;
                 }
@@ -342,6 +355,7 @@ public static class Helper
         }
 
         int separatorIndex;
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             separatorIndex = identity.Name.IndexOf('\\') + 1;

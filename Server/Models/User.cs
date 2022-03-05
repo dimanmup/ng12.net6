@@ -3,7 +3,7 @@ using System.Globalization;
 namespace Server.Models;
 
 /// <summary>
-/// Данные, наполняемые LDAP-запросом, для кук авторизации.
+/// Данные, наполняемые LDAP-запросом, сохраняемые в cookie авторизации.
 /// </summary>
 public class User
 {
@@ -12,7 +12,7 @@ public class User
     public string? Base { get; set; }
     public List<string> Groups { get; set; } = new List<string>();
     public string? LdapErrorResponseMessage { get; set; }
-    public int CodePage { get; set; } = System.Text.Encoding.ASCII.CodePage;
+    public int AltCodePage { get; set; } = System.Text.Encoding.ASCII.CodePage;
 
     public bool HasAnyGroup(IEnumerable<string> groups)
     {
