@@ -10,7 +10,7 @@
         <!-- Code -->
         <ng-container matColumnDef="code">
             <th mat-header-cell *matHeaderCellDef>Код</th>
-            <td mat-cell *matCellDef="let element" class="number">{{element.code}}</td>
+            <td mat-cell *matCellDef="let element" class="number" [attr.code]="element.code">{{element.code}}</td>
         </ng-container>
 
         <!-- localDateTimeString -->
