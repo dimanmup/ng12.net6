@@ -11,7 +11,7 @@ const pageNames: { [id: string]: string; } = {
   '/': 'главная',
   '/audit': 'события',
   '/auditOfUploadings': 'события: загрузка файлов',
-  '/upload': 'справка'
+  '/upload': 'загрузка'
 };
 
 @Component({

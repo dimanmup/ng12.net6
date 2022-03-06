@@ -252,15 +252,14 @@ app.MapFallbackToFile("index.html"); // Для GET-запросов через �
 app.MapPost("api/upload", Server.Controllers.FileController.Upload).RequireAuthorization();
 #endregion
 
-logger.LogInformation("Application launched!");
-Console.WriteLine();
-Console.WriteLine("Banana Cake Pop: https://localhost:5011/graphql");
-Console.WriteLine("Download GraphQL scheme: https://localhost:5011/graphql?sdl");
-Console.WriteLine("Check getting info: https://localhost:5011/api/info");
-Console.WriteLine("Check error 500: https://localhost:5011/api/division-by?divider=0");
-Console.WriteLine("Check protector: https://localhost:5011/api/protect?value=hello");
-Console.WriteLine("Check downloading: https://localhost:5011/api/download/audit?utcStart=2022.02.18&utcEnd=2022.02.21");
-Console.WriteLine("Angular SPA: http://localhost:4200");
+logger.LogInformation("*** Application launched! ***");
+logger.LogInformation("Banana Cake Pop: https://localhost:5011/graphql");
+logger.LogInformation("Download GraphQL scheme: https://localhost:5011/graphql?sdl");
+logger.LogInformation("Check getting info: https://localhost:5011/api/info");
+logger.LogInformation("Check error 500: https://localhost:5011/api/division-by?divider=0");
+logger.LogInformation("Check protector: https://localhost:5011/api/protect?value=hello");
+logger.LogInformation("Check downloading: https://localhost:5011/api/download/audit?utcStart=2022.02.18&utcEnd=2022.02.21");
+logger.LogInformation("Angular SPA: http://localhost:4200");
 
 app.Run();
 
