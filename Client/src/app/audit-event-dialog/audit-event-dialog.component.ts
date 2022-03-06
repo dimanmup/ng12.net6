@@ -38,7 +38,10 @@ export class AuditEventDialogComponent implements OnInit {
         }
         else {
           this.title = 'id ' + this.id + ', ' + this.datePipe.transform(new Date(result.data.auditEvents.items[0].localDateTime), 'yyyy.MM.dd HH:mm:ss')
-          this.description = result.data.auditEvents.items[0].description?.replace(/\\r\\n/g, '\n  ');
+          this.description = result.data.auditEvents.items[0].description?.replace(/(\\r\\n)|(\\n)/g, '\n  ')
+            .replace(/\\"/g, '"')
+            .replace(/"\{/g, "{")
+            .replace(/\}"/g, "}");
         }
       }, (error: ApolloError) => {
         const config : MatSnackBarConfig = {

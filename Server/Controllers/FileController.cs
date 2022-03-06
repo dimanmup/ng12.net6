@@ -124,6 +124,7 @@ public class FileController : Controller
                 if (!loading.NameAllowed(contentDisposition.FileName.Value))
                 {
                     message = "This name is not allowed.";
+                    await WriteBadRequestAuditEventAsync(message, dbContextOrigin, request);
                     return Results.BadRequest(message);
                 }
                 #endregion
