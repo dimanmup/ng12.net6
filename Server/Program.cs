@@ -218,7 +218,12 @@ builder.Host
 var app = builder.Build();
 
 app.UseRouting();
-app.UseHttpsRedirection();
+
+if (builder.Configuration.GetSection("UseHttpsRedirection").Get<bool>())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseExceptionHandler("/api/error-handler");
 app.UseCors(corsPolicyName); // Для доступности другому приложению, т.е. запущенному на localhost с другим портом.
 
