@@ -212,7 +212,8 @@ builder.Services.AddGraphQLServer()
 
 builder.Host
     .UseSerilog() // Системное логирование в файлы.
-    .UseWindowsService(); // Исполнимость в качестве службы.
+    // TODO: .UseWindowsService() // Исполнимость в качестве службы.
+    ;
 
 #region app
 var app = builder.Build();
