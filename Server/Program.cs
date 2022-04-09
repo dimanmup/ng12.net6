@@ -17,7 +17,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.File(System.IO.Path.Combine("Logs", "log-.txt"),
+    .WriteTo.File(System.IO.Path.Combine(AppContext.BaseDirectory, "Logs", "log-.txt"), // ! Для службы путь должен быть абсолютным.
         outputTemplate: "[{Level:u3}] {Timestamp:yyyy.MM.dd HH:mm:ss.fff}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 31,
@@ -212,7 +212,7 @@ builder.Services.AddGraphQLServer()
 
 builder.Host
     .UseSerilog() // Системное логирование в файлы.
-    // TODO: .UseWindowsService() // Исполнимость в качестве службы.
+    .UseWindowsService() // Исполнимость в качестве службы.
     ;
 
 #region app
